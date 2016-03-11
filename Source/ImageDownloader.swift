@@ -251,6 +251,7 @@ public class ImageDownloader {
     public func downloadImage(
         URLRequest URLRequest: URLRequestConvertible,
         filter: ImageFilter? = nil,
+        downloadPrioritization:DownloadPrioritization? = nil,
         completion: CompletionHandler? = nil)
         -> RequestReceipt?
     {
@@ -258,6 +259,7 @@ public class ImageDownloader {
             URLRequest: URLRequest,
             receiptID: NSUUID().UUIDString,
             filter: filter,
+            downloadPrioritization: downloadPrioritization,
             completion: completion
         )
     }
@@ -266,6 +268,7 @@ public class ImageDownloader {
         URLRequest URLRequest: URLRequestConvertible,
         receiptID: String,
         filter: ImageFilter?,
+        downloadPrioritization:DownloadPrioritization?,
         completion: CompletionHandler?)
         -> RequestReceipt?
     {
@@ -382,7 +385,7 @@ public class ImageDownloader {
             if self.isActiveRequestCountBelowMaximumLimit() {
                 self.startRequest(request)
             } else {
-                self.enqueueRequest(request)
+                self.enqueueRequest(request, downloadPrioritization:  downloadPrioritization ?? self.downloadPrioritization)
             }
         }
 
@@ -501,7 +504,7 @@ public class ImageDownloader {
         activeRequestCount += 1
     }
 
-    func enqueueRequest(request: Request) {
+    func enqueueRequest(request: Request, downloadPrioritization:DownloadPrioritization) {
         switch downloadPrioritization {
         case .FIFO:
             queuedRequests.append(request)
@@ -509,7 +512,16 @@ public class ImageDownloader {
             queuedRequests.insert(request, atIndex: 0)
         }
     }
-
+    public func increasePriorityForRequest(requestReceipt: RequestReceipt){
+        let request = requestReceipt.request
+        for (i,req) in queuedRequests.enumerate(){
+            if req.task == request.task {
+                queuedRequests.removeAtIndex(i)
+                queuedRequests.insert(req, atIndex: 0)
+                break
+            }
+        }
+    }
     func dequeueRequest() -> Request? {
         var request: Request?
 

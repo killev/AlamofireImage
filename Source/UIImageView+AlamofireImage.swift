@@ -291,6 +291,7 @@ extension UIImageView {
             URLRequest: URLRequest,
             receiptID: downloadID,
             filter: filter,
+            downloadPrioritization: nil,
             completion: { [weak self] response in
                 guard let strongSelf = self else { return }
 
