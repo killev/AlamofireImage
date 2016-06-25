@@ -515,10 +515,10 @@ public class ImageDownloader {
     public func increasePriorityForRequest(requestReceipt: RequestReceipt){
         dispatch_sync(self.synchronizationQueue) {
             let request = requestReceipt.request
-            for (i,req) in queuedRequests.enumerate(){
+            for (i,req) in self.queuedRequests.enumerate(){
                 if req.task == request.task {
-                    queuedRequests.removeAtIndex(i)
-                    queuedRequests.insert(req, atIndex: 0)
+                    self.queuedRequests.removeAtIndex(i)
+                    self.queuedRequests.insert(req, atIndex: 0)
                     break
                 }
             }
