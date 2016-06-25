@@ -513,12 +513,14 @@ public class ImageDownloader {
         }
     }
     public func increasePriorityForRequest(requestReceipt: RequestReceipt){
-        let request = requestReceipt.request
-        for (i,req) in queuedRequests.enumerate(){
-            if req.task == request.task {
-                queuedRequests.removeAtIndex(i)
-                queuedRequests.insert(req, atIndex: 0)
-                break
+        dispatch_sync(self.synchronizationQueue) {
+            let request = requestReceipt.request
+            for (i,req) in queuedRequests.enumerate(){
+                if req.task == request.task {
+                    queuedRequests.removeAtIndex(i)
+                    queuedRequests.insert(req, atIndex: 0)
+                    break
+                }
             }
         }
     }
