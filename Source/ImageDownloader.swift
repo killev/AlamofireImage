@@ -39,10 +39,11 @@ public class RequestReceipt {
 
     /// The unique identifier for the image filters and completion handlers when duplicate requests are made.
     public let receiptID: String
-
-    init(request: Request, receiptID: String) {
+    public let queue : dispatch_queue_t
+    init(request: Request, receiptID: String, queue : dispatch_queue_t) {
         self.request = request
         self.receiptID = receiptID
+        self.queue = queue
     }
 }
 
@@ -265,6 +266,7 @@ public class ImageDownloader {
     }
 
     func downloadImage(
+        queue queue: dispatch_queue_t = dispatch_get_main_queue(),
         URLRequest URLRequest: URLRequestConvertible,
         receiptID: String,
         filter: ImageFilter?,
@@ -291,7 +293,7 @@ public class ImageDownloader {
                     URLRequest.URLRequest,
                     withAdditionalIdentifier: filter?.identifier)
                 {
-                    dispatch_async(dispatch_get_main_queue()) {
+                    dispatch_async(queue) {
                         let response = Response<Image, NSError>(
                             request: URLRequest.URLRequest,
                             response: nil,
@@ -348,7 +350,7 @@ public class ImageDownloader {
                                 withAdditionalIdentifier: filter?.identifier
                             )
 
-                            dispatch_async(dispatch_get_main_queue()) {
+                            dispatch_async(queue) {
                                 let response = Response<Image, NSError>(
                                     request: response.request,
                                     response: response.response,
@@ -362,7 +364,7 @@ public class ImageDownloader {
                         }
                     case .Failure:
                         for (_, _, completion) in responseHandler.operations {
-                            dispatch_async(dispatch_get_main_queue()) { completion?(response) }
+                            dispatch_async(queue) { completion?(response) }
                         }
                     }
 
@@ -390,7 +392,7 @@ public class ImageDownloader {
         }
 
         if let request = request {
-            return RequestReceipt(request: request, receiptID: receiptID)
+            return RequestReceipt(request: request, receiptID: receiptID, queue: queue)
         }
 
         return nil
@@ -455,7 +457,7 @@ public class ImageDownloader {
                     return Response(request: URLRequest, response: nil, data: nil, result: .Failure(error))
                 }()
 
-                dispatch_async(dispatch_get_main_queue()) { operation.completion?(response) }
+                dispatch_async(requestReceipt.queue) { operation.completion?(response) }
             }
 
             if responseHandler.operations.isEmpty && requestReceipt.request.task.state == .Suspended {
