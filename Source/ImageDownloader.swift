@@ -250,13 +250,15 @@ public class ImageDownloader {
                    cache and the URL request cache policy allows the cache to be used.
     */
     public func downloadImage(
-        URLRequest URLRequest: URLRequestConvertible,
+        queue queue: dispatch_queue_t = dispatch_get_main_queue(),
+        URLRequest: URLRequestConvertible,
         filter: ImageFilter? = nil,
         downloadPrioritization:DownloadPrioritization? = nil,
         completion: CompletionHandler? = nil)
         -> RequestReceipt?
     {
         return downloadImage(
+            queue: queue,
             URLRequest: URLRequest,
             receiptID: NSUUID().UUIDString,
             filter: filter,
@@ -267,7 +269,7 @@ public class ImageDownloader {
 
     func downloadImage(
         queue queue: dispatch_queue_t = dispatch_get_main_queue(),
-        URLRequest URLRequest: URLRequestConvertible,
+        URLRequest: URLRequestConvertible,
         receiptID: String,
         filter: ImageFilter?,
         downloadPrioritization:DownloadPrioritization?,
